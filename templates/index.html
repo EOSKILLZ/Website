@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Roblox Game Stats</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+  /* LIGHT MODE (default) */
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #222;
+    padding: 2rem;
+    position: relative;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  .container {
+    background: #fff;
+    border-radius: 16px;
+    padding: 3rem 4rem;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 16px 32px rgba(0,0,0,0.15);
+    text-align: center;
+    position: relative;
+    transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  h1 {
+    margin-bottom: 1rem;
+    font-weight: 600;
+    font-size: 2.2rem;
+    color: #222;
+  }
+
+  .stats {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    font-size: 1.3rem;
+    color: #555;
+  }
+
+  .stat-item {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 500;
+    background: #f1f6f9;
+    padding: 0.8rem 1.2rem;
+    border-radius: 12px;
+    box-shadow: inset 0 0 6px #d3e0ea;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, color 0.25s ease;
+    cursor: default;
+  }
+
+  .stat-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(13, 71, 161, 0.3);
+    background: #e8f0fc;
+  }
+
+  .label {
+    color: #777;
+  }
+
+  .value {
+    color: #0d47a1;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Spinner + refresh text */
+  .refresh-container {
+    margin-top: 2.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    color: #0d47a1;
+    font-weight: 600;
+    font-size: 1rem;
+    user-select: none;
+    transition: color 0.3s ease;
+  }
+
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid #0d47a1;
+    border-top: 3px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Discord icon top right */
+  .discord-icon {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15));
+  }
+  .discord-icon:hover {
+    transform: scale(1.1);
+  }
+
+  /* Dark Mode Styles */
+  body.dark {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    color: #ddd;
+  }
+  body.dark .container {
+    background: #222c3c;
+    box-shadow: 0 16px 32px rgba(0,0,0,0.8);
+    color: #ddd;
+  }
+  body.dark h1 {
+    color: #eee;
+  }
+  body.dark .stats {
+    color: #bbb;
+  }
+  body.dark .stat-item {
+    background: #2e3b52;
+    box-shadow: inset 0 0 6px #1a2435;
+    color: #ccc;
+  }
+  body.dark .stat-item:hover {
+    background: #3a4a6d;
+    box-shadow: 0 8px 16px rgba(80, 110, 180, 0.6);
+  }
+  body.dark .label {
+    color: #aaa;
+  }
+  body.dark .value {
+    color: #82aaff;
+  }
+  body.dark .refresh-container {
+    color: #82aaff;
+  }
+  body.dark .spinner {
+    border: 3px solid #82aaff;
+    border-top: 3px solid transparent;
+  }
+
+  /* Dark mode toggle switch container */
+  .toggle-container {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    user-select: none;
+    font-weight: 600;
+    color: #222;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    z-index: 1000;
+  }
+  body.dark .toggle-container {
+    color: #ddd;
+  }
+
+  /* Toggle switch styling */
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 24px;
+  }
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 24px;
+  }
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+  }
+  input:checked + .slider {
+    background-color: #0d47a1;
+  }
+  input:checked + .slider:before {
+    transform: translateX(22px);
+  }
+
+</style>
+</head>
+<body>
+  <!-- Dark mode toggle -->
+  <label class="toggle-container" for="darkModeToggle">
+    Dark Mode
+    <div class="switch">
+      <input type="checkbox" id="darkModeToggle" />
+      <span class="slider"></span>
+    </div>
+  </label>
+
+  <a href="https://discord.gg/skillz" target="_blank" rel="noopener" title="Join our Discord">
+    <svg class="discord-icon" viewBox="0 0 245 240" xmlns="http://www.w3.org/2000/svg" fill="#5865F2">
+      <path d="M104.4 127.2c-5.7 0-10.2 5-10.2 11.2s4.6 11.2 10.2 11.2c5.7 0 10.2-5 10.2-11.2s-4.5-11.2-10.2-11.2zm36.3 0c-5.7 0-10.2 5-10.2 11.2s4.6 11.2 10.2 11.2c5.7 0 10.2-5 10.2-11.2s-4.5-11.2-10.2-11.2z"/>
+      <path d="M189.5 20H55.4c-23.2 0-42 19.2-42 42.9v112.2c0 23.7 18.8 42.9 42 42.9h105.1l-5-17.6 11.8 11 11.2 10.3 20.2 18.3V62.9c0-23.7-18.8-42.9-42-42.9zm-51.7 140.3s-4.9-6.1-9-11.5c18.2-5.4 25-16.3 25-16.3-5.6 3.7-11 6.3-15.8 8.1-6.9 3-13.5 5-20 6.2-13.1 2.8-25 2.1-35.2-.1-7.7-1.6-14.3-4-20-6.2-2.6-1-5.4-2.2-8.1-3.7-.4-.2-.8-.3-1.1-.5-.3-.1-.4-.2-.6-.3-2.1-1.1-3.3-2-3.3-2s6.5 10.6 23.5 16.7c-4 5.4-8.9 11.8-8.9 11.8-29.3-.9-40.5-20.1-40.5-20.1 0-42.4 18.9-76.8 18.9-76.8 18.9-14.2 36.9-13.8 36.9-13.8l1.3 1.5c-23.7 6.8-34.6 17-34.6 17s2 1.1 5.4 2.5c9.8 4.5 17.5 11.4 23.5 18.3 14.6 20.2 24.4 45.4 27.2 71.3z"/>
+    </svg>
+  </a>
+
+  <div class="container">
+    <h1 id="game-name">{{ game_name }}</h1>
+
+    <div class="stats">
+      <div class="stat-item"><span class="label">Playing</span><span class="value" id="playing">--</span></div>
+      <div class="stat-item"><span class="label">Visits</span><span class="value" id="visits">--</span></div>
+      <div class="stat-item"><span class="label">Favorites</span><span class="value" id="favorites">--</span></div>
+    </div>
+
+    <div class="refresh-container">
+      <div class="spinner"></div>
+      <div>Refreshing in <span id="countdown">10</span> seconds</div>
+    </div>
+  </div>
+
+<script>
+  const playingEl = document.getElementById('playing');
+  const visitsEl = document.getElementById('visits');
+  const favoritesEl = document.getElementById('favorites');
+  const countdownEl = document.getElementById('countdown');
+  const darkModeToggle = document.getElementById('darkModeToggle');
+
+  let countdown = 10;
+
+  // Store current values to animate from
+  let currentStats = {
+    playing: 0,
+    visits: 0,
+    favorites: 0
+  };
+
+  function animateCount(el, start, end, duration = 1000) {
+    let startTimestamp = null;
+    const step = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      const value = Math.floor(progress * (end - start) + start);
+      el.textContent = value.toLocaleString();
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        el.textContent = end.toLocaleString(); // Ensure final value is exact
+      }
+    };
+    requestAnimationFrame(step);
+  }
+
+  async function fetchStats() {
+    try {
+      const res = await fetch('/stats');
+      if (!res.ok) throw new Error('Network error');
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      // Animate each stat from current value to new value
+      animateCount(playingEl, currentStats.playing, data.playing);
+      animateCount(visitsEl, currentStats.visits, data.visits);
+      animateCount(favoritesEl, currentStats.favorites, data.favorites);
+
+      // Update stored values
+      currentStats = {
+        playing: data.playing,
+        visits: data.visits,
+        favorites: data.favorites
+      };
+
+      countdown = 10; // reset countdown on successful fetch
+    } catch (err) {
+      console.error('Failed to fetch stats:', err);
+    }
+  }
+
+  function updateCountdown() {
+    countdown--;
+    if (countdown <= 0) {
+      fetchStats();
+    }
+    countdownEl.textContent = countdown;
+  }
+
+  // Dark mode toggle logic
+  function setDarkMode(enabled) {
+    if (enabled) {
+      document.body.classList.add('dark');
+      darkModeToggle.checked = true;
+      localStorage.setItem('darkMode', 'true');
+    } else {
+      document.body.classList.remove('dark');
+      darkModeToggle.checked = false;
+      localStorage.setItem('darkMode', 'false');
+    }
+  }
+
+  darkModeToggle.addEventListener('change', () => {
+    setDarkMode(darkModeToggle.checked);
+  });
+
+  // On page load, apply saved preference
+  window.addEventListener('DOMContentLoaded', () => {
+    const savedMode = localStorage.getItem('darkMode');
+    setDarkMode(savedMode === 'true');
+    fetchStats();
+    setInterval(updateCountdown, 1000);
+  });
+</script>
+</body>
+</html>
